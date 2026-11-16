@@ -1,0 +1,473 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_UPPTech" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.52.0">
+  <bpmn:message id="Message_UpitPonuda" name="Upit za ponudu" />
+  <bpmn:message id="Message_Ponuda" name="Ponuda" />
+  <bpmn:message id="Message_PotvrdaPonude" name="Potvrda o prihvaćanju ponude" />
+  <bpmn:message id="Message_Softver" name="Softver za implementaciju" />
+  <bpmn:collaboration id="Collaboration_UPPTech">
+    <bpmn:participant id="Participant_UPPTech" name="UPPTech" processRef="Process_UPPTech" />
+    <bpmn:participant id="Participant_CrazyTech_Ponuda" name="CrazyTech – ponuda" processRef="Process_CrazyTechPonuda" />
+    <bpmn:participant id="Participant_CrazyTech_Razvoj" name="CrazyTech – razvoj softvera" processRef="Process_CrazyTechRazvoj" />
+    <bpmn:messageFlow id="MF_Upit" name="Upit" sourceRef="Task_PoslatiUpit" targetRef="Start_Upit" />
+    <bpmn:messageFlow id="MF_Ponuda" name="Ponuda" sourceRef="Task_DostavitiPonudu" targetRef="Task_ZaprimitiPonudu" />
+    <bpmn:messageFlow id="MF_Potvrda" name="Potvrda" sourceRef="Task_PoslatiPotvrdu" targetRef="Start_Potvrda" />
+    <bpmn:messageFlow id="MF_Softver" name="Softver" sourceRef="Task_PredatiSoftver" targetRef="Task_ZaprimitiSoftver" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_UPPTech" name="Implementacija softvera u tvrtki UPPTech" isExecutable="false">
+    <bpmn:documentation>Proces od ustanovljene potrebe do implementacije softvera. Management donosi poslovne odluke, IT tim provodi tehničke provjere, instalaciju i implementaciju.</bpmn:documentation>
+    <bpmn:laneSet id="LaneSet_Process_UPPTech">
+      <bpmn:lane id="Lane_IT" name="IT tim">
+        <bpmn:flowNodeRef>Task_ProvjeritiSoftvere</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_PostojiRjesenje</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Instalirati</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_KupljeniSoftver</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Outsourcing</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PoslatiUpit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ZaprimitiSoftver</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Implementirati</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_SoftverImplementiran</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Management" name="Management tim">
+        <bpmn:flowNodeRef>Start_Potreba</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DefiniratiPotrebe</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DogovoritiKupnju</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ZaprimitiPonudu</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RazmotritiPonudu</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PoslatiPotvrdu</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_PonudaOdbijena</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_PonudaPrihvacena</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Potreba" name="Potreba za novim softverom ustanovljena" />
+    <bpmn:userTask id="Task_DefiniratiPotrebe" name="Definirati poslovne potrebe i zahtjeve" />
+    <bpmn:userTask id="Task_ProvjeritiSoftvere" name="Provjeriti dostupne softvere na tržištu" />
+    <bpmn:exclusiveGateway id="Gateway_PostojiRjesenje" name="Postoji odgovarajuće rješenje?" />
+    <bpmn:userTask id="Task_DogovoritiKupnju" name="Dogovoriti kupnju softvera" />
+    <bpmn:serviceTask id="Task_Instalirati" name="Instalirati softver na server" />
+    <bpmn:endEvent id="End_KupljeniSoftver" name="Softver kupljen i instaliran" />
+    <bpmn:userTask id="Task_Outsourcing" name="Odlučiti o outsourcingu razvoja" />
+    <bpmn:sendTask id="Task_PoslatiUpit" name="Poslati upit za ponudu tvrtki CrazyTech" messageRef="Message_UpitPonuda" />
+    <bpmn:receiveTask id="Task_ZaprimitiPonudu" name="Zaprimiti ponudu" messageRef="Message_Ponuda" />
+    <bpmn:userTask id="Task_RazmotritiPonudu" name="Razmotriti ponudu">
+      <bpmn:documentation>Management razmatra ponudu CrazyTecha i odlučuje hoće li je prihvatiti. Ako je odbije, proces završava.</bpmn:documentation>
+    </bpmn:userTask>
+    <bpmn:sendTask id="Task_PoslatiPotvrdu" name="Poslati potvrdu o prihvaćanju ponude" messageRef="Message_PotvrdaPonude" />
+    <bpmn:endEvent id="End_PonudaOdbijena" name="Ponuda odbijena – proces završen" />
+    <bpmn:receiveTask id="Task_ZaprimitiSoftver" name="Zaprimiti softver za implementaciju" messageRef="Message_Softver">
+      <bpmn:documentation>IT tim zaprima softver od CrazyTecha i implementira ga na server tvrtke UPPTech.</bpmn:documentation>
+    </bpmn:receiveTask>
+    <bpmn:serviceTask id="Task_Implementirati" name="Implementirati softver na server" />
+    <bpmn:endEvent id="End_SoftverImplementiran" name="Softver implementiran" />
+    <bpmn:exclusiveGateway id="Gateway_PonudaPrihvacena" name="Ponuda prihvaćena?" />
+    <bpmn:sequenceFlow id="F_P1" sourceRef="Start_Potreba" targetRef="Task_DefiniratiPotrebe" />
+    <bpmn:sequenceFlow id="F_P2" sourceRef="Task_DefiniratiPotrebe" targetRef="Task_ProvjeritiSoftvere" />
+    <bpmn:sequenceFlow id="F_P3" sourceRef="Task_ProvjeritiSoftvere" targetRef="Gateway_PostojiRjesenje" />
+    <bpmn:sequenceFlow id="F_P4" name="Da" sourceRef="Gateway_PostojiRjesenje" targetRef="Task_DogovoritiKupnju" />
+    <bpmn:sequenceFlow id="F_P7" name="Ne" sourceRef="Gateway_PostojiRjesenje" targetRef="Task_Outsourcing" />
+    <bpmn:sequenceFlow id="F_P5" sourceRef="Task_DogovoritiKupnju" targetRef="Task_Instalirati" />
+    <bpmn:sequenceFlow id="F_P6" sourceRef="Task_Instalirati" targetRef="End_KupljeniSoftver" />
+    <bpmn:sequenceFlow id="F_P8" sourceRef="Task_Outsourcing" targetRef="Task_PoslatiUpit" />
+    <bpmn:sequenceFlow id="F_P8b" sourceRef="Task_PoslatiUpit" targetRef="Task_ZaprimitiPonudu" />
+    <bpmn:sequenceFlow id="F_P9" sourceRef="Task_ZaprimitiPonudu" targetRef="Task_RazmotritiPonudu" />
+    <bpmn:sequenceFlow id="F_P10" sourceRef="Task_RazmotritiPonudu" targetRef="Gateway_PonudaPrihvacena" />
+    <bpmn:sequenceFlow id="F_P11" name="Da" sourceRef="Gateway_PonudaPrihvacena" targetRef="Task_PoslatiPotvrdu" />
+    <bpmn:sequenceFlow id="F_P13" sourceRef="Task_PoslatiPotvrdu" targetRef="Task_ZaprimitiSoftver" />
+    <bpmn:sequenceFlow id="F_P12" name="Ne" sourceRef="Gateway_PonudaPrihvacena" targetRef="End_PonudaOdbijena" />
+    <bpmn:sequenceFlow id="F_P14" sourceRef="Task_ZaprimitiSoftver" targetRef="Task_Implementirati" />
+    <bpmn:sequenceFlow id="F_P15" sourceRef="Task_Implementirati" targetRef="End_SoftverImplementiran" />
+  </bpmn:process>
+  <bpmn:process id="Process_CrazyTechPonuda" name="CrazyTech – izrada ponude" isExecutable="false">
+    <bpmn:documentation>Vanjski proces procjene troškova i dostave ponude.</bpmn:documentation>
+    <bpmn:startEvent id="Start_Upit" name="Upit za ponudu zaprimljen">
+      <bpmn:messageEventDefinition id="MsgDef_Message_UpitPonuda" messageRef="Message_UpitPonuda" />
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_ProcijenitiTrosak" name="Procijeniti troškove razvoja" />
+    <bpmn:sendTask id="Task_DostavitiPonudu" name="Dostaviti ponudu UPPTechu" messageRef="Message_Ponuda" />
+    <bpmn:endEvent id="End_PonudaDostavljena" name="Ponuda dostavljena" />
+    <bpmn:sequenceFlow id="F_O1" sourceRef="Start_Upit" targetRef="Task_ProcijenitiTrosak" />
+    <bpmn:sequenceFlow id="F_O2" sourceRef="Task_ProcijenitiTrosak" targetRef="Task_DostavitiPonudu" />
+    <bpmn:sequenceFlow id="F_O3" sourceRef="Task_DostavitiPonudu" targetRef="End_PonudaDostavljena" />
+  </bpmn:process>
+  <bpmn:process id="Process_CrazyTechRazvoj" name="CrazyTech – razvoj softverskog rješenja" isExecutable="false">
+    <bpmn:documentation>Vanjski proces razvoja softvera nakon prihvaćanja ponude. Sadrži potproces razvoja s povratnom petljom na fazu razvoja ako testiranje ne prođe.</bpmn:documentation>
+    <bpmn:startEvent id="Start_Potvrda" name="Potvrda zaprimljena">
+      <bpmn:messageEventDefinition id="MsgDef_Message_PotvrdaPonude" messageRef="Message_PotvrdaPonude" />
+    </bpmn:startEvent>
+    <bpmn:subProcess id="Sub_Razvoj" name="Razviti softversko rješenje">
+      <bpmn:documentation>Složeni proces razvoja: definiranje zahtjeva, dizajn, razvoj i testiranje. Ako testiranje ne prođe, postupak se vraća na fazu razvoja.</bpmn:documentation>
+      <bpmn:startEvent id="SubStart_Razvoj" name="Početak razvoja" />
+      <bpmn:userTask id="SubTask_Zahtjevi" name="Definirati zahtjeve" />
+      <bpmn:userTask id="SubTask_Dizajn" name="Dizajnirati softver" />
+      <bpmn:exclusiveGateway id="SubGateway_Nastaviti" name="Nastaviti razvoj?" />
+      <bpmn:userTask id="SubTask_Razviti" name="Razviti softver" />
+      <bpmn:userTask id="SubTask_Testirati" name="Testirati softver" />
+      <bpmn:exclusiveGateway id="SubGateway_Test" name="Testiranje uspješno?" />
+      <bpmn:endEvent id="SubEnd_Razvoj" name="Razvoj uspješno dovršen" />
+      <bpmn:sequenceFlow id="SF1" sourceRef="SubStart_Razvoj" targetRef="SubTask_Zahtjevi" />
+      <bpmn:sequenceFlow id="SF2" sourceRef="SubTask_Zahtjevi" targetRef="SubTask_Dizajn" />
+      <bpmn:sequenceFlow id="SF3" sourceRef="SubTask_Dizajn" targetRef="SubGateway_Nastaviti" />
+      <bpmn:sequenceFlow id="SF4" sourceRef="SubGateway_Nastaviti" targetRef="SubTask_Razviti" />
+      <bpmn:sequenceFlow id="SF5" sourceRef="SubTask_Razviti" targetRef="SubTask_Testirati" />
+      <bpmn:sequenceFlow id="SF6" sourceRef="SubTask_Testirati" targetRef="SubGateway_Test" />
+      <bpmn:sequenceFlow id="SF7" name="Da" sourceRef="SubGateway_Test" targetRef="SubEnd_Razvoj" />
+      <bpmn:sequenceFlow id="SF8" name="Ne – ispravci" sourceRef="SubGateway_Test" targetRef="SubGateway_Nastaviti" />
+    </bpmn:subProcess>
+    <bpmn:sendTask id="Task_PredatiSoftver" name="Predati softver UPPTechu" messageRef="Message_Softver" />
+    <bpmn:endEvent id="End_RazvojDovrsen" name="Razvoj dovršen" />
+    <bpmn:sequenceFlow id="F_D1" sourceRef="Start_Potvrda" targetRef="Sub_Razvoj" />
+    <bpmn:sequenceFlow id="F_D2" sourceRef="Sub_Razvoj" targetRef="Task_PredatiSoftver" />
+    <bpmn:sequenceFlow id="F_D3" sourceRef="Task_PredatiSoftver" targetRef="End_RazvojDovrsen" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_UPPTech">
+    <bpmndi:BPMNPlane id="BPMNPlane_UPPTech" bpmnElement="Collaboration_UPPTech">
+      <bpmndi:BPMNShape id="Participant_UPPTech_di" bpmnElement="Participant_UPPTech" isHorizontal="true">
+        <dc:Bounds x="160" y="40" width="3060" height="520" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_IT_di" bpmnElement="Lane_IT" isHorizontal="true">
+        <dc:Bounds x="190" y="280" width="3030" height="280" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Management_di" bpmnElement="Lane_Management" isHorizontal="true">
+        <dc:Bounds x="190" y="40" width="3030" height="240" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_Potreba_di" bpmnElement="Start_Potreba">
+        <dc:Bounds x="220" y="132" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="219" y="62" width="137" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DefiniratiPotrebe_di" bpmnElement="Task_DefiniratiPotrebe">
+        <dc:Bounds x="300" y="110" width="220" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ProvjeritiSoftvere_di" bpmnElement="Task_ProvjeritiSoftvere">
+        <dc:Bounds x="580" y="360" width="240" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_PostojiRjesenje_di" bpmnElement="Gateway_PostojiRjesenje" isMarkerVisible="true">
+        <dc:Bounds x="860" y="375" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="839" y="330" width="103" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DogovoritiKupnju_di" bpmnElement="Task_DogovoritiKupnju">
+        <dc:Bounds x="980" y="110" width="220" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Instalirati_di" bpmnElement="Task_Instalirati">
+        <dc:Bounds x="1240" y="300" width="240" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_KupljeniSoftver_di" bpmnElement="End_KupljeniSoftver">
+        <dc:Bounds x="1540" y="322" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1519" y="358" width="79" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Outsourcing_di" bpmnElement="Task_Outsourcing">
+        <dc:Bounds x="980" y="450" width="240" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PoslatiUpit_di" bpmnElement="Task_PoslatiUpit">
+        <dc:Bounds x="1260" y="450" width="260" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ZaprimitiPonudu_di" bpmnElement="Task_ZaprimitiPonudu">
+        <dc:Bounds x="1620" y="110" width="220" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RazmotritiPonudu_di" bpmnElement="Task_RazmotritiPonudu">
+        <dc:Bounds x="1880" y="110" width="220" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PoslatiPotvrdu_di" bpmnElement="Task_PoslatiPotvrdu">
+        <dc:Bounds x="2240" y="80" width="240" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_PonudaOdbijena_di" bpmnElement="End_PonudaOdbijena">
+        <dc:Bounds x="2147" y="205" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2123" y="241" width="84" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ZaprimitiSoftver_di" bpmnElement="Task_ZaprimitiSoftver">
+        <dc:Bounds x="2540" y="360" width="260" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Implementirati_di" bpmnElement="Task_Implementirati">
+        <dc:Bounds x="2840" y="360" width="240" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_SoftverImplementiran_di" bpmnElement="End_SoftverImplementiran">
+        <dc:Bounds x="3140" y="382" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3123" y="418" width="70" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_PonudaPrihvacena_di" bpmnElement="Gateway_PonudaPrihvacena" isMarkerVisible="true">
+        <dc:Bounds x="2140" y="73" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2028.5" y="91" width="101" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="F_P1_di" bpmnElement="F_P1">
+        <di:waypoint x="256" y="150" />
+        <di:waypoint x="300" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_P2_di" bpmnElement="F_P2">
+        <di:waypoint x="520" y="150" />
+        <di:waypoint x="550" y="150" />
+        <di:waypoint x="550" y="400" />
+        <di:waypoint x="580" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_P3_di" bpmnElement="F_P3">
+        <di:waypoint x="820" y="400" />
+        <di:waypoint x="860" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_P4_di" bpmnElement="F_P4">
+        <di:waypoint x="885" y="375" />
+        <di:waypoint x="885" y="150" />
+        <di:waypoint x="980" y="150" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="893" y="253" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_P5_di" bpmnElement="F_P5">
+        <di:waypoint x="1200" y="150" />
+        <di:waypoint x="1220" y="150" />
+        <di:waypoint x="1220" y="340" />
+        <di:waypoint x="1240" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_P6_di" bpmnElement="F_P6">
+        <di:waypoint x="1480" y="340" />
+        <di:waypoint x="1540" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_P7_di" bpmnElement="F_P7">
+        <di:waypoint x="910" y="400" />
+        <di:waypoint x="940" y="400" />
+        <di:waypoint x="940" y="490" />
+        <di:waypoint x="980" y="490" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="948" y="435" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_P8_di" bpmnElement="F_P8">
+        <di:waypoint x="1220" y="490" />
+        <di:waypoint x="1260" y="490" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_P8b_di" bpmnElement="F_P8b">
+        <di:waypoint x="1520" y="490" />
+        <di:waypoint x="1615" y="490" />
+        <di:waypoint x="1615" y="150" />
+        <di:waypoint x="1620" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_P9_di" bpmnElement="F_P9">
+        <di:waypoint x="1840" y="150" />
+        <di:waypoint x="1880" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_P10_di" bpmnElement="F_P10">
+        <di:waypoint x="2100" y="123" />
+        <di:waypoint x="2120" y="123" />
+        <di:waypoint x="2120" y="104" />
+        <di:waypoint x="2146" y="104" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_P11_di" bpmnElement="F_P11">
+        <di:waypoint x="2190" y="98" />
+        <di:waypoint x="2215" y="98" />
+        <di:waypoint x="2215" y="120" />
+        <di:waypoint x="2240" y="120" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2191" y="75" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_P12_di" bpmnElement="F_P12">
+        <di:waypoint x="2165" y="123" />
+        <di:waypoint x="2165" y="205" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2173" y="150" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_P13_di" bpmnElement="F_P13">
+        <di:waypoint x="2480" y="120" />
+        <di:waypoint x="2510" y="120" />
+        <di:waypoint x="2510" y="400" />
+        <di:waypoint x="2540" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_P14_di" bpmnElement="F_P14">
+        <di:waypoint x="2800" y="400" />
+        <di:waypoint x="2840" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_P15_di" bpmnElement="F_P15">
+        <di:waypoint x="3080" y="400" />
+        <di:waypoint x="3140" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_CrazyTech_Ponuda_di" bpmnElement="Participant_CrazyTech_Ponuda" isHorizontal="true">
+        <dc:Bounds x="160" y="600" width="860" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_Upit_di" bpmnElement="Start_Upit">
+        <dc:Bounds x="220" y="682" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="223" y="625" width="128" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ProcijenitiTrosak_di" bpmnElement="Task_ProcijenitiTrosak">
+        <dc:Bounds x="300" y="660" width="220" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DostavitiPonudu_di" bpmnElement="Task_DostavitiPonudu">
+        <dc:Bounds x="560" y="660" width="220" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_PonudaDostavljena_di" bpmnElement="End_PonudaDostavljena">
+        <dc:Bounds x="820" y="682" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="810" y="718" width="56" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="F_O1_di" bpmnElement="F_O1">
+        <di:waypoint x="256" y="700" />
+        <di:waypoint x="300" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_O2_di" bpmnElement="F_O2">
+        <di:waypoint x="520" y="700" />
+        <di:waypoint x="560" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_O3_di" bpmnElement="F_O3">
+        <di:waypoint x="780" y="700" />
+        <di:waypoint x="820" y="700" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_CrazyTech_Razvoj_di" bpmnElement="Participant_CrazyTech_Razvoj" isHorizontal="true">
+        <dc:Bounds x="1070" y="600" width="2000" height="540" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_Potvrda_di" bpmnElement="Start_Potvrda">
+        <dc:Bounds x="1120" y="682" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1122" y="723" width="57" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_Razvoj_di" bpmnElement="Sub_Razvoj" isExpanded="true">
+        <dc:Bounds x="1200" y="660" width="1350" height="420" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubStart_Razvoj_di" bpmnElement="SubStart_Razvoj">
+        <dc:Bounds x="1240" y="762" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1219" y="798" width="79" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubTask_Zahtjevi_di" bpmnElement="SubTask_Zahtjevi">
+        <dc:Bounds x="1310" y="740" width="200" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubTask_Dizajn_di" bpmnElement="SubTask_Dizajn">
+        <dc:Bounds x="1550" y="740" width="200" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubGateway_Nastaviti_di" bpmnElement="SubGateway_Nastaviti" isMarkerVisible="true">
+        <dc:Bounds x="1790" y="755" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1777" y="705" width="81" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubTask_Razviti_di" bpmnElement="SubTask_Razviti">
+        <dc:Bounds x="1880" y="740" width="200" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubTask_Testirati_di" bpmnElement="SubTask_Testirati">
+        <dc:Bounds x="2120" y="740" width="200" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubGateway_Test_di" bpmnElement="SubGateway_Test" isMarkerVisible="true">
+        <dc:Bounds x="2360" y="755" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2342" y="705" width="101" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubEnd_Razvoj_di" bpmnElement="SubEnd_Razvoj">
+        <dc:Bounds x="2450" y="762" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2428" y="798" width="81" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="SF1_di" bpmnElement="SF1">
+        <di:waypoint x="1276" y="780" />
+        <di:waypoint x="1310" y="780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF2_di" bpmnElement="SF2">
+        <di:waypoint x="1510" y="780" />
+        <di:waypoint x="1550" y="780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF3_di" bpmnElement="SF3">
+        <di:waypoint x="1750" y="780" />
+        <di:waypoint x="1790" y="780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF4_di" bpmnElement="SF4">
+        <di:waypoint x="1840" y="780" />
+        <di:waypoint x="1880" y="780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF5_di" bpmnElement="SF5">
+        <di:waypoint x="2080" y="780" />
+        <di:waypoint x="2120" y="780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF6_di" bpmnElement="SF6">
+        <di:waypoint x="2320" y="780" />
+        <di:waypoint x="2360" y="780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF7_di" bpmnElement="SF7">
+        <di:waypoint x="2410" y="780" />
+        <di:waypoint x="2450" y="780" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2423" y="755" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SF8_di" bpmnElement="SF8">
+        <di:waypoint x="2385" y="805" />
+        <di:waypoint x="2385" y="940" />
+        <di:waypoint x="1815" y="940" />
+        <di:waypoint x="1815" y="805" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2068" y="915" width="64" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Task_PredatiSoftver_di" bpmnElement="Task_PredatiSoftver">
+        <dc:Bounds x="2600" y="740" width="220" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_RazvojDovrsen_di" bpmnElement="End_RazvojDovrsen">
+        <dc:Bounds x="2860" y="762" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2840" y="798" width="76" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="F_D1_di" bpmnElement="F_D1">
+        <di:waypoint x="1156" y="700" />
+        <di:waypoint x="1180" y="700" />
+        <di:waypoint x="1180" y="780" />
+        <di:waypoint x="1200" y="780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_D2_di" bpmnElement="F_D2">
+        <di:waypoint x="2550" y="780" />
+        <di:waypoint x="2600" y="780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_D3_di" bpmnElement="F_D3">
+        <di:waypoint x="2820" y="780" />
+        <di:waypoint x="2860" y="780" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_Upit_di" bpmnElement="MF_Upit">
+        <di:waypoint x="1390" y="530" />
+        <di:waypoint x="1390" y="580" />
+        <di:waypoint x="238" y="580" />
+        <di:waypoint x="238" y="682" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="833" y="540" width="20" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_Ponuda_di" bpmnElement="MF_Ponuda">
+        <di:waypoint x="670" y="660" />
+        <di:waypoint x="670" y="590" />
+        <di:waypoint x="1730" y="590" />
+        <di:waypoint x="1730" y="190" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1184" y="565" width="38" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_Potvrda_di" bpmnElement="MF_Potvrda">
+        <di:waypoint x="2360" y="160" />
+        <di:waypoint x="2360" y="630" />
+        <di:waypoint x="1138" y="630" />
+        <di:waypoint x="1138" y="682" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1736" y="604" width="38" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_Softver_di" bpmnElement="MF_Softver">
+        <di:waypoint x="2710" y="740" />
+        <di:waypoint x="2710" y="440" />
+        <di:waypoint x="2670" y="440" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2733" y="478" width="35" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,720 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_UpisStudenata" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.53.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
+  <bpmn:collaboration id="Collaboration_1">
+    <bpmn:participant id="Participant_NISpVU" name="NISpVU (Postani student)" processRef="Process_NISpVU" />
+    <bpmn:participant id="Participant_Sveuciliste" name="Sveučilište Jurja Dobrile u Puli" processRef="Process_Upis" />
+    <bpmn:participant id="Participant_Kandidati" name="Kandidati" />
+    <bpmn:messageFlow id="MF_Rang" name="Rang-liste kandidata" sourceRef="N_Dostaviti" targetRef="U_Start" />
+    <bpmn:messageFlow id="MF_Dorada" name="Dokumentacija za doradu" sourceRef="U_Dorada" targetRef="Participant_NISpVU" />
+    <bpmn:messageFlow id="MF_Ispravljena" name="Ispravljena dokumentacija" sourceRef="Participant_NISpVU" targetRef="U_Ispravljena" />
+    <bpmn:messageFlow id="MF_Obavijest" name="Obavijest o konačnim rang-listama" sourceRef="U_Obavijestiti" targetRef="Participant_Kandidati" />
+    <bpmn:messageFlow id="MF_Dokumentacija" name="Dokumentacija o upisu" sourceRef="U_Dokumentacija" targetRef="Participant_Kandidati" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_NISpVU" name="NISpVU (Postani student)" isExecutable="true">
+    <bpmn:startEvent id="N_Start" name="Početak upisnog razdoblja">
+      <bpmn:outgoing>F_N1</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="N_Start_def">
+        <bpmn:timeDate xsi:type="bpmn:tFormalExpression">2027-05-15T08:00:00Z</bpmn:timeDate>
+      </bpmn:timerEventDefinition>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="N_Objaviti" name="Objaviti natječaj za upise">
+      <bpmn:incoming>F_N1</bpmn:incoming>
+      <bpmn:outgoing>F_N2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="N_Prijave" name="Zaprimati prijave kandidata">
+      <bpmn:documentation>Kandidati online prijavljuju odabir studija putem sustava Postani student.</bpmn:documentation>
+      <bpmn:incoming>F_N2</bpmn:incoming>
+      <bpmn:outgoing>F_N3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:intermediateCatchEvent id="N_RokPrijave" name="Istekao rok za prijave">
+      <bpmn:incoming>F_N3</bpmn:incoming>
+      <bpmn:outgoing>F_N4</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="N_RokPrijave_def">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P30D</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:exclusiveGateway id="N_GOkolnosti" name="Posebne okolnosti?">
+      <bpmn:documentation>Npr. ponavljanje ispita iz pojedinog predmeta na državnoj maturi.</bpmn:documentation>
+      <bpmn:incoming>F_N4</bpmn:incoming>
+      <bpmn:outgoing>F_N5</bpmn:outgoing>
+      <bpmn:outgoing>F_N6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:intermediateCatchEvent id="N_Odgoda" name="Istekla odgoda upisa">
+      <bpmn:incoming>F_N5</bpmn:incoming>
+      <bpmn:outgoing>F_N7</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="N_Odgoda_def">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P7D</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:exclusiveGateway id="N_Merge">
+      <bpmn:incoming>F_N6</bpmn:incoming>
+      <bpmn:incoming>F_N7</bpmn:incoming>
+      <bpmn:outgoing>F_N8</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:businessRuleTask id="N_Generirati" name="Generirati rang-liste po studijskim programima">
+      <bpmn:incoming>F_N8</bpmn:incoming>
+      <bpmn:outgoing>F_N9</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:sendTask id="N_Dostaviti" name="Dostaviti rang-liste sveučilištima" messageRef="Msg_Rang">
+      <bpmn:incoming>F_N9</bpmn:incoming>
+      <bpmn:outgoing>F_N10</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:endEvent id="N_End" name="Rang-liste dostavljene">
+      <bpmn:incoming>F_N10</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="F_N1" sourceRef="N_Start" targetRef="N_Objaviti" />
+    <bpmn:sequenceFlow id="F_N2" sourceRef="N_Objaviti" targetRef="N_Prijave" />
+    <bpmn:sequenceFlow id="F_N3" sourceRef="N_Prijave" targetRef="N_RokPrijave" />
+    <bpmn:sequenceFlow id="F_N4" sourceRef="N_RokPrijave" targetRef="N_GOkolnosti" />
+    <bpmn:sequenceFlow id="F_N5" name="Da" sourceRef="N_GOkolnosti" targetRef="N_Odgoda" />
+    <bpmn:sequenceFlow id="F_N6" name="Ne" sourceRef="N_GOkolnosti" targetRef="N_Merge" />
+    <bpmn:sequenceFlow id="F_N7" sourceRef="N_Odgoda" targetRef="N_Merge" />
+    <bpmn:sequenceFlow id="F_N8" sourceRef="N_Merge" targetRef="N_Generirati" />
+    <bpmn:sequenceFlow id="F_N9" sourceRef="N_Generirati" targetRef="N_Dostaviti" />
+    <bpmn:sequenceFlow id="F_N10" sourceRef="N_Dostaviti" targetRef="N_End" />
+  </bpmn:process>
+  <bpmn:process id="Process_Upis" name="Sveučilište Jurja Dobrile u Puli" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_Process_Upis">
+      <bpmn:lane id="Lane_Ured" name="Ured za studente i upise">
+        <bpmn:flowNodeRef>U_Start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_Provjeriti</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_GIspravna</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_Dorada</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_Ispravljena</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_M0</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_Evaluacija</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_Konacne</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_Obavijestiti</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_RokZalbe</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_G1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_M1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_Razmotriti</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_G2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_Odluciti</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_Ponovno</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_M2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_G3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_Azurirati</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_M3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_G4</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_M4</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_Objaviti</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_Upis</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_Dokumentacija</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_Arhivirati</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_RokUpisa</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>U_End</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Pravna" name="Pravna služba">
+        <bpmn:flowNodeRef>U_Pravna</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="U_Start" name="Rang-liste zaprimljene">
+      <bpmn:outgoing>F_U1</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="U_Start_def" messageRef="Msg_Rang" />
+    </bpmn:startEvent>
+    <bpmn:manualTask id="U_Provjeriti" name="Provjeriti dostavljenu dokumentaciju">
+      <bpmn:incoming>F_U1</bpmn:incoming>
+      <bpmn:outgoing>F_U2</bpmn:outgoing>
+    </bpmn:manualTask>
+    <bpmn:exclusiveGateway id="U_GIspravna" name="Dokumentacija ispravna?">
+      <bpmn:incoming>F_U2</bpmn:incoming>
+      <bpmn:outgoing>F_U3</bpmn:outgoing>
+      <bpmn:outgoing>F_U4</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="U_Dorada" name="Poslati dokumentaciju na doradu" messageRef="Msg_Dorada">
+      <bpmn:documentation>NISpVU se obavještava o nedostacima, a problematična dokumentacija šalje se na doradu.</bpmn:documentation>
+      <bpmn:incoming>F_U3</bpmn:incoming>
+      <bpmn:outgoing>F_U5</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:receiveTask id="U_Ispravljena" name="Zaprimiti ispravljenu dokumentaciju" messageRef="Msg_Ispravljena">
+      <bpmn:incoming>F_U5</bpmn:incoming>
+      <bpmn:outgoing>F_U6</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:exclusiveGateway id="U_M0">
+      <bpmn:incoming>F_U4</bpmn:incoming>
+      <bpmn:incoming>F_U6</bpmn:incoming>
+      <bpmn:outgoing>F_U7</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="U_Evaluacija" name="Provesti internu evaluaciju kandidata">
+      <bpmn:documentation>Evaluacija prema rezultatima i vlastitim kriterijima (prijamni ispiti, intervjui i sl.).</bpmn:documentation>
+      <bpmn:incoming>F_U7</bpmn:incoming>
+      <bpmn:outgoing>F_U8</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="U_Konacne" name="Generirati konačne rang-liste">
+      <bpmn:incoming>F_U8</bpmn:incoming>
+      <bpmn:outgoing>F_U9</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sendTask id="U_Obavijestiti" name="Obavijestiti kandidate o konačnim rang-listama" messageRef="Msg_Obavijest">
+      <bpmn:incoming>F_U9</bpmn:incoming>
+      <bpmn:outgoing>F_U10</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:intermediateCatchEvent id="U_RokZalbe" name="Istekao rok za žalbe">
+      <bpmn:incoming>F_U10</bpmn:incoming>
+      <bpmn:outgoing>F_U11</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="U_RokZalbe_def">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P8D</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:exclusiveGateway id="U_G1" name="Ima li žalbi?">
+      <bpmn:incoming>F_U11</bpmn:incoming>
+      <bpmn:outgoing>F_U12</bpmn:outgoing>
+      <bpmn:outgoing>F_U13</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="U_M1">
+      <bpmn:incoming>F_U12</bpmn:incoming>
+      <bpmn:incoming>F_U26</bpmn:incoming>
+      <bpmn:outgoing>F_U14</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="U_Razmotriti" name="Razmotriti žalbu">
+      <bpmn:incoming>F_U14</bpmn:incoming>
+      <bpmn:outgoing>F_U15</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="U_G2" name="Složena žalba?">
+      <bpmn:documentation>Npr. žalbe vezane uz bodovanje na prijamnom ispitu.</bpmn:documentation>
+      <bpmn:incoming>F_U15</bpmn:incoming>
+      <bpmn:outgoing>F_U16</bpmn:outgoing>
+      <bpmn:outgoing>F_U17</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="U_Odluciti" name="Odlučiti o žalbi">
+      <bpmn:incoming>F_U16</bpmn:incoming>
+      <bpmn:outgoing>F_U20</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="U_Pravna" name="Odrediti ponovno bodovanje ili drugu metodu evaluacije">
+      <bpmn:documentation>Npr. intervju nije prikladan za kandidata s invaliditetom pa se određuje druga metoda.</bpmn:documentation>
+      <bpmn:incoming>F_U17</bpmn:incoming>
+      <bpmn:outgoing>F_U18</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="U_Ponovno" name="Provesti ponovnu evaluaciju">
+      <bpmn:incoming>F_U18</bpmn:incoming>
+      <bpmn:outgoing>F_U19</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="U_M2">
+      <bpmn:incoming>F_U19</bpmn:incoming>
+      <bpmn:incoming>F_U20</bpmn:incoming>
+      <bpmn:outgoing>F_U21</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="U_G3" name="Žalba prihvaćena?">
+      <bpmn:incoming>F_U21</bpmn:incoming>
+      <bpmn:outgoing>F_U22</bpmn:outgoing>
+      <bpmn:outgoing>F_U23</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="U_Azurirati" name="Ažurirati konačne rang-liste">
+      <bpmn:incoming>F_U22</bpmn:incoming>
+      <bpmn:outgoing>F_U24</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="U_M3">
+      <bpmn:incoming>F_U23</bpmn:incoming>
+      <bpmn:incoming>F_U24</bpmn:incoming>
+      <bpmn:outgoing>F_U25</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="U_G4" name="Ima još žalbi?">
+      <bpmn:incoming>F_U25</bpmn:incoming>
+      <bpmn:outgoing>F_U26</bpmn:outgoing>
+      <bpmn:outgoing>F_U27</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="U_M4">
+      <bpmn:incoming>F_U13</bpmn:incoming>
+      <bpmn:incoming>F_U27</bpmn:incoming>
+      <bpmn:outgoing>F_U28</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="U_Objaviti" name="Objaviti konačne rang-liste">
+      <bpmn:incoming>F_U28</bpmn:incoming>
+      <bpmn:outgoing>F_U29</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="U_Upis" name="Provesti upis studenata u internoj aplikaciji">
+      <bpmn:incoming>F_U29</bpmn:incoming>
+      <bpmn:outgoing>F_U30</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sendTask id="U_Dokumentacija" name="Poslati dokumentaciju studentima e-poštom" messageRef="Msg_Dokumentacija">
+      <bpmn:incoming>F_U30</bpmn:incoming>
+      <bpmn:outgoing>F_U31</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:serviceTask id="U_Arhivirati" name="Arhivirati dokumentaciju u internom sustavu">
+      <bpmn:incoming>F_U31</bpmn:incoming>
+      <bpmn:outgoing>F_U32</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:intermediateCatchEvent id="U_RokUpisa" name="Završio jesenski upisni rok">
+      <bpmn:incoming>F_U32</bpmn:incoming>
+      <bpmn:outgoing>F_U33</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="U_RokUpisa_def">
+        <bpmn:timeDate xsi:type="bpmn:tFormalExpression">2027-09-30T16:00:00Z</bpmn:timeDate>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:endEvent id="U_End" name="Upis završen">
+      <bpmn:incoming>F_U33</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="F_U1" sourceRef="U_Start" targetRef="U_Provjeriti" />
+    <bpmn:sequenceFlow id="F_U2" sourceRef="U_Provjeriti" targetRef="U_GIspravna" />
+    <bpmn:sequenceFlow id="F_U3" name="Ne" sourceRef="U_GIspravna" targetRef="U_Dorada" />
+    <bpmn:sequenceFlow id="F_U4" name="Da" sourceRef="U_GIspravna" targetRef="U_M0" />
+    <bpmn:sequenceFlow id="F_U5" sourceRef="U_Dorada" targetRef="U_Ispravljena" />
+    <bpmn:sequenceFlow id="F_U6" sourceRef="U_Ispravljena" targetRef="U_M0" />
+    <bpmn:sequenceFlow id="F_U7" sourceRef="U_M0" targetRef="U_Evaluacija" />
+    <bpmn:sequenceFlow id="F_U8" sourceRef="U_Evaluacija" targetRef="U_Konacne" />
+    <bpmn:sequenceFlow id="F_U9" sourceRef="U_Konacne" targetRef="U_Obavijestiti" />
+    <bpmn:sequenceFlow id="F_U10" sourceRef="U_Obavijestiti" targetRef="U_RokZalbe" />
+    <bpmn:sequenceFlow id="F_U11" sourceRef="U_RokZalbe" targetRef="U_G1" />
+    <bpmn:sequenceFlow id="F_U12" name="Da" sourceRef="U_G1" targetRef="U_M1" />
+    <bpmn:sequenceFlow id="F_U13" name="Ne" sourceRef="U_G1" targetRef="U_M4" />
+    <bpmn:sequenceFlow id="F_U14" sourceRef="U_M1" targetRef="U_Razmotriti" />
+    <bpmn:sequenceFlow id="F_U15" sourceRef="U_Razmotriti" targetRef="U_G2" />
+    <bpmn:sequenceFlow id="F_U16" name="Ne" sourceRef="U_G2" targetRef="U_Odluciti" />
+    <bpmn:sequenceFlow id="F_U17" name="Da" sourceRef="U_G2" targetRef="U_Pravna" />
+    <bpmn:sequenceFlow id="F_U18" sourceRef="U_Pravna" targetRef="U_Ponovno" />
+    <bpmn:sequenceFlow id="F_U19" sourceRef="U_Ponovno" targetRef="U_M2" />
+    <bpmn:sequenceFlow id="F_U20" sourceRef="U_Odluciti" targetRef="U_M2" />
+    <bpmn:sequenceFlow id="F_U21" sourceRef="U_M2" targetRef="U_G3" />
+    <bpmn:sequenceFlow id="F_U22" name="Da" sourceRef="U_G3" targetRef="U_Azurirati" />
+    <bpmn:sequenceFlow id="F_U23" name="Ne" sourceRef="U_G3" targetRef="U_M3" />
+    <bpmn:sequenceFlow id="F_U24" sourceRef="U_Azurirati" targetRef="U_M3" />
+    <bpmn:sequenceFlow id="F_U25" sourceRef="U_M3" targetRef="U_G4" />
+    <bpmn:sequenceFlow id="F_U26" name="Da" sourceRef="U_G4" targetRef="U_M1" />
+    <bpmn:sequenceFlow id="F_U27" name="Ne" sourceRef="U_G4" targetRef="U_M4" />
+    <bpmn:sequenceFlow id="F_U28" sourceRef="U_M4" targetRef="U_Objaviti" />
+    <bpmn:sequenceFlow id="F_U29" sourceRef="U_Objaviti" targetRef="U_Upis" />
+    <bpmn:sequenceFlow id="F_U30" sourceRef="U_Upis" targetRef="U_Dokumentacija" />
+    <bpmn:sequenceFlow id="F_U31" sourceRef="U_Dokumentacija" targetRef="U_Arhivirati" />
+    <bpmn:sequenceFlow id="F_U32" sourceRef="U_Arhivirati" targetRef="U_RokUpisa" />
+    <bpmn:sequenceFlow id="F_U33" sourceRef="U_RokUpisa" targetRef="U_End" />
+  </bpmn:process>
+  <bpmn:message id="Msg_Rang" name="Rang-liste kandidata" />
+  <bpmn:message id="Msg_Dorada" name="Dokumentacija za doradu" />
+  <bpmn:message id="Msg_Ispravljena" name="Ispravljena dokumentacija" />
+  <bpmn:message id="Msg_Obavijest" name="Obavijest o konačnim rang-listama" />
+  <bpmn:message id="Msg_Dokumentacija" name="Dokumentacija o upisu" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_1">
+      <bpmndi:BPMNShape id="Participant_NISpVU_di" bpmnElement="Participant_NISpVU" isHorizontal="true">
+        <dc:Bounds x="160" y="60" width="2050" height="270" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_Start_di" bpmnElement="N_Start">
+        <dc:Bounds x="212" y="167" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="195" y="210" width="70" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_Objaviti_di" bpmnElement="N_Objaviti">
+        <dc:Bounds x="300" y="145" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_Prijave_di" bpmnElement="N_Prijave">
+        <dc:Bounds x="500" y="145" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_RokPrijave_di" bpmnElement="N_RokPrijave">
+        <dc:Bounds x="712" y="167" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="700" y="210" width="60" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_GOkolnosti_di" bpmnElement="N_GOkolnosti" isMarkerVisible="true">
+        <dc:Bounds x="805" y="160" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="783" y="130" width="95" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_Odgoda_di" bpmnElement="N_Odgoda">
+        <dc:Bounds x="912" y="257" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="883" y="300" width="93" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_Merge_di" bpmnElement="N_Merge" isMarkerVisible="true">
+        <dc:Bounds x="1005" y="160" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_Generirati_di" bpmnElement="N_Generirati">
+        <dc:Bounds x="1100" y="145" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_Dostaviti_di" bpmnElement="N_Dostaviti">
+        <dc:Bounds x="1300" y="145" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="N_End_di" bpmnElement="N_End">
+        <dc:Bounds x="1542" y="167" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1530" y="210" width="60" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="F_N1_di" bpmnElement="F_N1">
+        <di:waypoint x="248" y="185" />
+        <di:waypoint x="300" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_N2_di" bpmnElement="F_N2">
+        <di:waypoint x="450" y="185" />
+        <di:waypoint x="500" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_N3_di" bpmnElement="F_N3">
+        <di:waypoint x="650" y="185" />
+        <di:waypoint x="712" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_N4_di" bpmnElement="F_N4">
+        <di:waypoint x="748" y="185" />
+        <di:waypoint x="805" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_N5_di" bpmnElement="F_N5">
+        <di:waypoint x="830" y="210" />
+        <di:waypoint x="830" y="275" />
+        <di:waypoint x="912" y="275" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="812" y="228" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_N6_di" bpmnElement="F_N6">
+        <di:waypoint x="855" y="185" />
+        <di:waypoint x="1005" y="185" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="922" y="167" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_N7_di" bpmnElement="F_N7">
+        <di:waypoint x="948" y="275" />
+        <di:waypoint x="1030" y="275" />
+        <di:waypoint x="1030" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_N8_di" bpmnElement="F_N8">
+        <di:waypoint x="1055" y="185" />
+        <di:waypoint x="1100" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_N9_di" bpmnElement="F_N9">
+        <di:waypoint x="1250" y="185" />
+        <di:waypoint x="1300" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_N10_di" bpmnElement="F_N10">
+        <di:waypoint x="1450" y="185" />
+        <di:waypoint x="1542" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_Sveuciliste_di" bpmnElement="Participant_Sveuciliste" isHorizontal="true">
+        <dc:Bounds x="1260" y="380" width="4280" height="560" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Pravna_di" bpmnElement="Lane_Pravna" isHorizontal="true">
+        <dc:Bounds x="1290" y="800" width="4250" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Ured_di" bpmnElement="Lane_Ured" isHorizontal="true">
+        <dc:Bounds x="1290" y="380" width="4250" height="420" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_Start_di" bpmnElement="U_Start">
+        <dc:Bounds x="1357" y="582" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1345" y="625" width="60" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_Provjeriti_di" bpmnElement="U_Provjeriti">
+        <dc:Bounds x="1470" y="560" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_GIspravna_di" bpmnElement="U_GIspravna" isMarkerVisible="true">
+        <dc:Bounds x="1670" y="575" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1655" y="630" width="80" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_Dorada_di" bpmnElement="U_Dorada">
+        <dc:Bounds x="1770" y="440" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_Ispravljena_di" bpmnElement="U_Ispravljena">
+        <dc:Bounds x="1970" y="440" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_M0_di" bpmnElement="U_M0" isMarkerVisible="true">
+        <dc:Bounds x="2170" y="575" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_Evaluacija_di" bpmnElement="U_Evaluacija">
+        <dc:Bounds x="2270" y="560" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_Konacne_di" bpmnElement="U_Konacne">
+        <dc:Bounds x="2470" y="560" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_Obavijestiti_di" bpmnElement="U_Obavijestiti">
+        <dc:Bounds x="2670" y="560" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_RokZalbe_di" bpmnElement="U_RokZalbe">
+        <dc:Bounds x="2872" y="582" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2860" y="625" width="60" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_G1_di" bpmnElement="U_G1" isMarkerVisible="true">
+        <dc:Bounds x="2965" y="575" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2959" y="630" width="62" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_M1_di" bpmnElement="U_M1" isMarkerVisible="true">
+        <dc:Bounds x="3065" y="575" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_Razmotriti_di" bpmnElement="U_Razmotriti">
+        <dc:Bounds x="3160" y="560" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_G2_di" bpmnElement="U_G2" isMarkerVisible="true">
+        <dc:Bounds x="3365" y="575" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3345" y="558" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_Odluciti_di" bpmnElement="U_Odluciti">
+        <dc:Bounds x="3465" y="560" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_Pravna_di" bpmnElement="U_Pravna">
+        <dc:Bounds x="3465" y="830" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_Ponovno_di" bpmnElement="U_Ponovno">
+        <dc:Bounds x="3665" y="680" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_M2_di" bpmnElement="U_M2" isMarkerVisible="true">
+        <dc:Bounds x="3865" y="575" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_G3_di" bpmnElement="U_G3" isMarkerVisible="true">
+        <dc:Bounds x="3965" y="575" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3945" y="543" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_Azurirati_di" bpmnElement="U_Azurirati">
+        <dc:Bounds x="4065" y="560" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_M3_di" bpmnElement="U_M3" isMarkerVisible="true">
+        <dc:Bounds x="4265" y="575" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_G4_di" bpmnElement="U_G4" isMarkerVisible="true">
+        <dc:Bounds x="4365" y="575" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4355" y="630" width="72" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_M4_di" bpmnElement="U_M4" isMarkerVisible="true">
+        <dc:Bounds x="4465" y="575" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_Objaviti_di" bpmnElement="U_Objaviti">
+        <dc:Bounds x="4565" y="560" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_Upis_di" bpmnElement="U_Upis">
+        <dc:Bounds x="4765" y="560" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_Dokumentacija_di" bpmnElement="U_Dokumentacija">
+        <dc:Bounds x="4965" y="560" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_Arhivirati_di" bpmnElement="U_Arhivirati">
+        <dc:Bounds x="5165" y="560" width="150" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_RokUpisa_di" bpmnElement="U_RokUpisa">
+        <dc:Bounds x="5367" y="582" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5352" y="625" width="66" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="U_End_di" bpmnElement="U_End">
+        <dc:Bounds x="5457" y="582" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5445" y="625" width="60" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="F_U1_di" bpmnElement="F_U1">
+        <di:waypoint x="1393" y="600" />
+        <di:waypoint x="1470" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U2_di" bpmnElement="F_U2">
+        <di:waypoint x="1620" y="600" />
+        <di:waypoint x="1670" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U3_di" bpmnElement="F_U3">
+        <di:waypoint x="1695" y="575" />
+        <di:waypoint x="1695" y="480" />
+        <di:waypoint x="1770" y="480" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1675" y="523" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U4_di" bpmnElement="F_U4">
+        <di:waypoint x="1720" y="600" />
+        <di:waypoint x="2170" y="600" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1938" y="582" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U5_di" bpmnElement="F_U5">
+        <di:waypoint x="1920" y="480" />
+        <di:waypoint x="1970" y="480" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U6_di" bpmnElement="F_U6">
+        <di:waypoint x="2120" y="480" />
+        <di:waypoint x="2195" y="480" />
+        <di:waypoint x="2195" y="575" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U7_di" bpmnElement="F_U7">
+        <di:waypoint x="2220" y="600" />
+        <di:waypoint x="2270" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U8_di" bpmnElement="F_U8">
+        <di:waypoint x="2420" y="600" />
+        <di:waypoint x="2470" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U9_di" bpmnElement="F_U9">
+        <di:waypoint x="2620" y="600" />
+        <di:waypoint x="2670" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U10_di" bpmnElement="F_U10">
+        <di:waypoint x="2820" y="600" />
+        <di:waypoint x="2872" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U11_di" bpmnElement="F_U11">
+        <di:waypoint x="2908" y="600" />
+        <di:waypoint x="2965" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U12_di" bpmnElement="F_U12">
+        <di:waypoint x="3015" y="600" />
+        <di:waypoint x="3065" y="600" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3032" y="582" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U13_di" bpmnElement="F_U13">
+        <di:waypoint x="2990" y="575" />
+        <di:waypoint x="2990" y="415" />
+        <di:waypoint x="4490" y="415" />
+        <di:waypoint x="4490" y="575" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2970" y="520" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U14_di" bpmnElement="F_U14">
+        <di:waypoint x="3115" y="600" />
+        <di:waypoint x="3160" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U15_di" bpmnElement="F_U15">
+        <di:waypoint x="3310" y="600" />
+        <di:waypoint x="3365" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U16_di" bpmnElement="F_U16">
+        <di:waypoint x="3415" y="600" />
+        <di:waypoint x="3465" y="600" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3432" y="582" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U17_di" bpmnElement="F_U17">
+        <di:waypoint x="3390" y="625" />
+        <di:waypoint x="3390" y="870" />
+        <di:waypoint x="3465" y="870" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3370" y="650" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U18_di" bpmnElement="F_U18">
+        <di:waypoint x="3615" y="870" />
+        <di:waypoint x="3740" y="870" />
+        <di:waypoint x="3740" y="760" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U19_di" bpmnElement="F_U19">
+        <di:waypoint x="3815" y="720" />
+        <di:waypoint x="3890" y="720" />
+        <di:waypoint x="3890" y="625" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U20_di" bpmnElement="F_U20">
+        <di:waypoint x="3615" y="600" />
+        <di:waypoint x="3865" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U21_di" bpmnElement="F_U21">
+        <di:waypoint x="3915" y="600" />
+        <di:waypoint x="3965" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U22_di" bpmnElement="F_U22">
+        <di:waypoint x="4015" y="600" />
+        <di:waypoint x="4065" y="600" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4032" y="582" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U23_di" bpmnElement="F_U23">
+        <di:waypoint x="3990" y="625" />
+        <di:waypoint x="3990" y="720" />
+        <di:waypoint x="4290" y="720" />
+        <di:waypoint x="4290" y="625" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="3970" y="650" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U24_di" bpmnElement="F_U24">
+        <di:waypoint x="4215" y="600" />
+        <di:waypoint x="4265" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U25_di" bpmnElement="F_U25">
+        <di:waypoint x="4315" y="600" />
+        <di:waypoint x="4365" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U26_di" bpmnElement="F_U26">
+        <di:waypoint x="4390" y="575" />
+        <di:waypoint x="4390" y="480" />
+        <di:waypoint x="3090" y="480" />
+        <di:waypoint x="3090" y="575" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4397" y="523" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U27_di" bpmnElement="F_U27">
+        <di:waypoint x="4415" y="600" />
+        <di:waypoint x="4465" y="600" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="4432" y="582" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U28_di" bpmnElement="F_U28">
+        <di:waypoint x="4515" y="600" />
+        <di:waypoint x="4565" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U29_di" bpmnElement="F_U29">
+        <di:waypoint x="4715" y="600" />
+        <di:waypoint x="4765" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U30_di" bpmnElement="F_U30">
+        <di:waypoint x="4915" y="600" />
+        <di:waypoint x="4965" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U31_di" bpmnElement="F_U31">
+        <di:waypoint x="5115" y="600" />
+        <di:waypoint x="5165" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U32_di" bpmnElement="F_U32">
+        <di:waypoint x="5315" y="600" />
+        <di:waypoint x="5367" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F_U33_di" bpmnElement="F_U33">
+        <di:waypoint x="5403" y="600" />
+        <di:waypoint x="5457" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_Kandidati_di" bpmnElement="Participant_Kandidati" isHorizontal="true">
+        <dc:Bounds x="2590" y="1000" width="2702.5" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="MF_Rang_di" bpmnElement="MF_Rang">
+        <di:waypoint x="1375" y="225" />
+        <di:waypoint x="1375" y="582" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1408" y="348" width="110" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_Dorada_di" bpmnElement="MF_Dorada">
+        <di:waypoint x="1845" y="440" />
+        <di:waypoint x="1845" y="330" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1700" y="348" width="112" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_Ispravljena_di" bpmnElement="MF_Ispravljena">
+        <di:waypoint x="2045" y="330" />
+        <di:waypoint x="2045" y="440" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2078" y="348" width="128" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_Obavijest_di" bpmnElement="MF_Obavijest">
+        <di:waypoint x="2745" y="640" />
+        <di:waypoint x="2745" y="1000" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2778" y="962" width="170" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="MF_Dokumentacija_di" bpmnElement="MF_Dokumentacija">
+        <di:waypoint x="5040" y="640" />
+        <di:waypoint x="5040" y="1000" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="5073" y="962" width="110" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
